@@ -1,0 +1,59 @@
+# Querying a database with multiple tables in it to quantify statistics about customer and order data. 
+
+# Looking through tables to understand schema and data
+SELECT * FROM BIT_DB.JanSales LIMIT 20;
+
+SELECT * FROM BIT_DB.FebSales LIMIT 20;
+
+SELECT * FROM BIT_DB.customers LIMIT 20;
+
+# Finding total orders placed in January.
+SELECT COUNT(orderID) AS orders_placed
+FROM BIT_DB.JanSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID';
+
+# How many of those orders were for an iPhone?
+SELECT COUNT(orderID) AS orders_placed
+FROM BIT_DB.JanSales
+WHERE length(orderID) = 6
+AND orderID <> 'Order ID'
+AND Product = 'iPhone';
+
+# Select all custoemr account numbers for all the orders placed in February
+SELECT DISTINCT cust.acctnum
+FROM BIT_DB.customers cust
+INNER JOIN BIT_DB.FebSales feb
+ON cust.order_id = feb.orderID
+WHERE Length(feb.orderID) = 6
+AND orderID <> 'Order ID';
+
+# Which product was the cheapest one sold in January and what was the price?
+SELECT Product, MIN(price)
+FROM BIT_DB.JanSales
+WHERE Length(orderID) = 6
+AND orderID <> 'Order ID';
+
+# What is the total revenue for each product sold in January?
+SELECT SUM(Quantity) * price AS revenue, product
+FROM BIT_DB.JanSales
+WHERE Length(orderID) = 6
+AND orderID <> 'Order ID'
+GROUP BY product;
+
+# Which products were sold in February at 548 Lincoln St, Seattle, WA 98101, how many of each were sold, and what was the total revenue?
+SELECT Product, SUM(Quantity), SUM(Quantity) * price AS revenue
+FROM BIT_DB.FebSales
+WHERE location = '548 Lincoln St, Seattle, WA 98101'
+AND Length(orderID) = 6
+AND orderID <> 'Order ID'
+GROUP BY Product;
+
+# How many customers ordered more than 2 products at a time, and what was the average amount spent for those customers?
+SELECT COUNT(cust.acctnum), AVG(feb.Quantity * feb.price) AS average
+FROM BIT_DB.FebSales feb LEFT JOIN BIT_DB.customers cust 
+ON feb.orderID = cust.order_id
+WHERE feb.Quantity > 2
+AND Length(feb.orderID) = 6
+AND feb.orderID <> 'Order ID'
+GROUP BY cust.acctnum;
